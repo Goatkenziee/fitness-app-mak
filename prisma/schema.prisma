@@ -1,0 +1,72 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                 String     @id @default(cuid())
+  email              String     @unique
+  name               String
+  passwordHash       String
+  calorieGoal        Int        @default(2000)
+  weightGoal         Float?
+  currentWeight      Float?
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+
+  meals              Meal[]
+  workouts           Workout[]
+  dailyLogs          DailyLog[]
+
+  @@index([email])
+}
+
+model Meal {
+  id                 String     @id @default(cuid())
+  userId             String
+  user               User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name               String
+  calories           Int
+  protein            Float?
+  carbs              Float?
+  fat                Float?
+  loggedAt           DateTime   @default(now())
+  createdAt          DateTime   @default(now())
+
+  @@index([userId, loggedAt])
+}
+
+model Workout {
+  id                 String     @id @default(cuid())
+  userId             String
+  user               User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  exerciseType       String
+  duration           Int
+  intensity          String
+  caloriesBurned     Int?
+  notes              String?
+  loggedAt           DateTime   @default(now())
+  createdAt          DateTime   @default(now())
+
+  @@index([userId, loggedAt])
+}
+
+model DailyLog {
+  id                 String     @id @default(cuid())
+  userId             String
+  user               User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date               DateTime   @db.Date
+  totalCalories      Int        @default(0)
+  totalWorkoutCals   Int        @default(0)
+  weight             Float?
+  notes              String?
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+
+  @@unique([userId, date])
+  @@index([userId, date])
+}
